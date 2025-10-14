@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<modDesc descVersion="92">
+	<author>Schluppe</author>
+	<version>1.0.0.0</version>
+	
+	<title>
+		<en>Courseplay GPS Extension</en>
+		<de>Courseplay GPS Erweiterung</de>
+	</title>
+	
+	<description>
+		<en>This mod adds automatic steering to Vehicles based on Courseplay curses.</en>
+		<de>Diese Mod fügt die Spurführung auf Basis von Courseplay Kursen hinzu.</de>
+	</description>
+	
+	<iconFilename>store.dds</iconFilename>
+	<multiplayer supported="false"/>
+	
+	<extraSourceFiles>
+		<sourceFile filename="RegisterSpecialization.lua" />
+	</extraSourceFiles>	
+
+	<l10n>
+		<text name="input_FS25_CourseplayGpsExtension_GPS_ONOFF">
+			<de>Courseplay GPS ein/aus</de>
+			<en>Courseplay GPS on/off</en>
+		</text>
+		<text name="GPS_OFF">
+			<de>GPS aus</de>
+			<en>GPS off</en>
+		</text>
+		<text name="GPS_ON">
+			<de>GPS ein</de>
+			<en>GPS on</en>
+		</text>
+	</l10n>
+
+	<actions>
+		<action name="FS25_CourseplayGpsExtension_GPS_ONOFF" category="VEHICLE"/>
+	</actions>
+	
+	<registerSpecializations>
+		<registerSpecialization name="CourseplayGpsExtension" className="CourseplayGpsExtension" filename="CourseplayGpsExtension.lua" searchedSpecializations="drivable"/>
+	</registerSpecializations>
+</modDesc>
