@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------------------------
--- Courseplay Gps Extension (V1.0.0)
+-- Courseplay Gps Extension (V1.0.1)
 ----------------------------------------------------------------------------------------------------
 -- Purpose:  Courseplay Gps Extension
 -- Authors:  Schluppe
@@ -8,6 +8,7 @@
 --
 -- History:	
 --	V1.0.0 	13.10.2025 - Initial implementation
+--	V1.0.1 	15.10.2025 - Change Track visibility when auto steering is active
 ----------------------------------------------------------------------------------------------------
 CourseplayGpsExtension = {}
 CourseplayGpsExtension.LogLevel = 1	-- (0=Error, 1=Warning, 2=Info, 3=Debug)
@@ -51,6 +52,7 @@ function CourseplayGpsExtension.registerEventListeners(vehicleType)
     SpecializationUtil.registerEventListener(vehicleType, "onDelete"				, CourseplayGpsExtension)
 	SpecializationUtil.registerEventListener(vehicleType, "onRegisterActionEvents"	, CourseplayGpsExtension)
 	SpecializationUtil.registerEventListener(vehicleType, "onUpdate"				, CourseplayGpsExtension)
+    SpecializationUtil.registerEventListener(vehicleType, "onUpdateTick"			, CourseplayGpsExtension)
 end
 
 -- Register Overwritten Function
@@ -86,21 +88,6 @@ function CourseplayGpsExtension:onDelete()
 	local spec = self.spec_cpGpsExtension
     if spec.samples ~= nil then
         g_soundManager:deleteSamples(spec.samples)
-    end
-end
-
--- Event On Register Action Events
-function CourseplayGpsExtension:onRegisterActionEvents(isActiveForInput, isActiveForInputIgnoreSelection)    
-	CourseplayGpsExtension.PrintModLog(3, "onRegisterActionEvents")
-    if self.isClient then
-        local spec = self.spec_cpGpsExtension
-		self:clearActionEventsTable(spec.actionEvents)
-		if self:getIsActiveForInput(true) and self.isActiveForInputIgnoreSelectionIgnoreAI then
-			local _, actionEventId = self:addActionEvent(spec.actionEvents, InputAction.FS25_CourseplayGpsExtension_GPS_ONOFF, self, CourseplayGpsExtension.ToggleSteeringOnOff, false, true, false, true, nil)
-			g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_NORMAL)
-			g_inputBinding:setActionEventTextVisibility(actionEventId, false)
-			g_inputBinding:setActionEventActive(actionEventId, false)
-		end
     end
 end
 
@@ -190,6 +177,36 @@ function CourseplayGpsExtension:onUpdate(dt)
 	end
 end
 
+-- Event On Update Tick
+function CourseplayGpsExtension:onUpdateTick(dt, isActiveForInput, isActiveForInputIgnoreSelection, isSelected)
+   	if self.isClient then
+		local spec = self.spec_cpGpsExtension
+		if spec.HidePathTime then
+			spec.HidePathTime = spec.HidePathTime - dt 
+			if spec.HidePathTime < 0 then
+				spec.HidePathTime = nil
+				self:getCpSettings().showCourse:setValue(0)
+			end
+		end
+   	end
+end
+
+-- Event On Register Action Events
+function CourseplayGpsExtension:onRegisterActionEvents(isActiveForInput, isActiveForInputIgnoreSelection)    
+	CourseplayGpsExtension.PrintModLog(3, "onRegisterActionEvents")
+    if self.isClient then
+        local spec = self.spec_cpGpsExtension
+		self:clearActionEventsTable(spec.actionEvents)
+		if self:getIsActiveForInput(true) and self.isActiveForInputIgnoreSelectionIgnoreAI then
+			local _, actionEventId = self:addActionEvent(spec.actionEvents, InputAction.FS25_CourseplayGpsExtension_GPS_ONOFF, self, CourseplayGpsExtension.ToggleSteeringOnOff, false, true, false, true, nil)
+			g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_NORMAL)
+			g_inputBinding:setActionEventTextVisibility(actionEventId, false)
+			g_inputBinding:setActionEventActive(actionEventId, false)
+		end
+    end
+end
+
+
 -- Overwritten Functions
 -- Event On Update Vehicle Physics: Send steering control value to Vehicle 
 function CourseplayGpsExtension:updateVehiclePhysics(superFunc, axisForward, axisSide, doHandbrake, dt)
@@ -197,7 +214,7 @@ function CourseplayGpsExtension:updateVehiclePhysics(superFunc, axisForward, axi
 	local spec = self.spec_cpGpsExtension
   	if spec.GpsActive and spec.GpsActive == 1 and spec.course ~= nil then
 		if math.abs(axisSide) > 0.2 then
-			spec.GpsActive = 0
+			self:SteeringOnOff(0)	-- GPS Off
 		end
 
 		if spec.steeringValue < 0 then
@@ -280,24 +297,15 @@ function CourseplayGpsExtension:cpEonWaypointChange(ix, course)
 	
 	if spec.LastNodeInRow ~=nil and spec.LastNodeInRow == ix then
 		CourseplayGpsExtension.PrintModLog(3, "updateVehiclePhysics: End of the row reached. Stop GPS")
-		if spec.samples.lineEnd ~= nil then
-			g_soundManager:playSample(spec.samples.lineEnd)
-		end
-		spec.GpsActive = 0
-		if self:getCruiseControlState() == Drivable.CRUISECONTROL_STATE_ACTIVE then
-			self:setCruiseControlState(Drivable.CRUISECONTROL_STATE_OFF)
-		end
+		self:SteeringOnOff(2)	-- GPS Off
 	end
 	if course:isLastWaypointIx(ix) then
 		CourseplayGpsExtension.PrintModLog(3, "updateVehiclePhysics: End of the course reached. Stop GPS")
-		if spec.samples.lineEnd ~= nil then
-			g_soundManager:playSample(spec.samples.lineEnd)
-		end
-		spec.GpsActive = 0
-		if self:getCruiseControlState() == Drivable.CRUISECONTROL_STATE_ACTIVE then
-			self:setCruiseControlState(Drivable.CRUISECONTROL_STATE_OFF)
-		end
+		self:SteeringOnOff(2)	-- GPS Off
 	end
+
+	course:setCurrentWaypointIx(ix)
+	self:updateCpCourseDisplayVisibility()
 end
 
 -- Called on WayPoint passed
@@ -309,14 +317,15 @@ end
 
 -- Local Functions --
 -- Toggle Steering On / Off
-function CourseplayGpsExtension:SteeringOnOff()
-	CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff")	
+-- State: nil=Toggle 0=Off, 1=On, 2=Off end reached
+function CourseplayGpsExtension:SteeringOnOff(state)
+	CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff ("  .. tostring(state) .. ")")	
 	local spec = self.spec_cpGpsExtension
     local specFW = self["spec_FS25_Courseplay.cpAIFieldWorker"]
 
 	spec.course = self:getFieldWorkCourse()
 	if spec.course == nil then
-		spec.GpsActive = 0			-- GPS Off
+		spec.GpsActive = 0		-- GPS Off
 	else
 		if spec.ppc == nil then
 			spec.ppc = specFW.driveStrategy.ppc
@@ -324,27 +333,41 @@ function CourseplayGpsExtension:SteeringOnOff()
 			CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Register PPC")	
 		end
 
-		local _, _, ClosestIdxInDirection, _ = spec.course:getNearestWaypoints(self:getAIDirectionNode())
-		spec.ppc:setCourse(spec.course)
-		spec.ppc:initialize(ClosestIdxInDirection)
-		CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Starting at Index " .. tostring(ClosestIdxInDirection))	
-
-		if spec.GpsActive == 0 or spec.GpsActive == nil then
-			spec.GpsActive = 1			-- GPS On
+		if (state == nil and (spec.GpsActive == 0 or spec.GpsActive == nil)) or
+		   (state ~= nil and state == 1) 
+		then
+			local _, _, ClosestIdxInDirection, _ = spec.course:getNearestWaypoints(self:getAIDirectionNode())
+			spec.ppc:setCourse(spec.course)
+			spec.ppc:initialize(ClosestIdxInDirection)
+			CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Starting at Index " .. tostring(ClosestIdxInDirection))	
 			spec.LastNodeInRow = nil
+			spec.CourseVisibility = self:getCpSettings().showCourse:getValue()
+			spec.HidePathTime = 3000
+			spec.GpsActive = 1 		-- GPS On
+	        if self.isClient and spec.samples.engage ~= nil then
+				g_soundManager:playSample(spec.samples.engage)
+			end
 		else
-			spec.GpsActive = 0			-- GPS Off
-		end
-        if self.isClient then
-			if spec.GpsActive == 1 then
-				if spec.samples.engage ~= nil then
-	                g_soundManager:playSample(spec.samples.engage)
+			spec.GpsActive = 0		-- GPS Off
+			spec.HidePathTime = nil
+			if spec.CourseVisibility then
+				self:getCpSettings().showCourse:setValue(spec.CourseVisibility)
+			end
+	        if self.isClient then
+				if (state and state == 2) then
+					if self:getCruiseControlState() == Drivable.CRUISECONTROL_STATE_ACTIVE then
+						self:setCruiseControlState(Drivable.CRUISECONTROL_STATE_OFF)
+					end
+
+					if spec.samples.lineEnd ~= nil then
+						g_soundManager:playSample(spec.samples.lineEnd)
+					end
+				else
+					if spec.samples.disengage ~= nil then
+						g_soundManager:playSample(spec.samples.disengage)
+					end
 				end
-            else
-				if spec.samples.disengage ~= nil then
-	                g_soundManager:playSample(spec.samples.disengage)
-				end
-            end
+			end
 		end
 	end
 end
