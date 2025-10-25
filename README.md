@@ -9,22 +9,23 @@ Afterwards you can use Field courses to enable GPS tracking when driving the tra
 How to use this mod:
 - 
 - Generate or load a CP course
-- You'll need to activate the CP helper for a short moment (1 second is enough).
 - As from this moment the you can activate the automatic steering (please assign an activate key in the settings)
 - The system picks the closest way points and start to steer automatically
 
 Features:
 -
 - Automatically follows the CP course
-- At the end of each row is the GPS tracking disabled
-- At the end of each row is the cruise control switched off 
-- When a CP course is loaded the Giants automatic steering course is being removed. This allows to use the same key binding and prevents 2 auto-steering systems are becoming activated. 
-
-Known / open issues:
+- Parameters to control the following features:
+    - At the end of each row is the GPS tracking disabled
+    - At the end of each row is the cruise control switched off 
+    - Remove Giants automatic steering courses when a CP course is loaded
+    - Define the mode to show the path of the course
+    - Time to hide the path after activating the automatic steering
+    
+Known / open issues / limitations:
 -
-- The mod was only tested in single player. In case somebody would like to use MP and would like to test the functionallity, please contact me.
 - The system is foreseen for working on fields only.
-- In the moment you'd like to use the Giants auto-steering feature, you'll need to remove the CP course from the vehicle. Not the best solution, but for me this works for the moment. Suggestions are very welcome :-).
+- When keeping the steering at the end of the row active, the vehicle might have difficulties to follow the path.
 
 Screenshot
 -

@@ -1,14 +1,15 @@
 ----------------------------------------------------------------------------------------------------
--- Courseplay Gps Extension (V1.0.1)
+-- Courseplay Gps Extension (V1.0.2)
 ----------------------------------------------------------------------------------------------------
 -- Purpose:  Courseplay Gps Extension
 -- Authors:  Schluppe
 --
 -- Copyright (c) none - free to use 2025
 --
--- History:	
+-- History:
 --	V1.0.0 	13.10.2025 - Initial implementation
 --	V1.0.1 	15.10.2025 - Change Track visibility when auto steering is active
+--	V1.0.2 	18.10.2025 - Adding Parameter to control the behavior, Multi-Player
 ----------------------------------------------------------------------------------------------------
 CourseplayGpsExtension = {}
 CourseplayGpsExtension.LogLevel = 1	-- (0=Error, 1=Warning, 2=Info, 3=Debug)
@@ -16,7 +17,7 @@ CourseplayGpsExtension.LogLevel = 1	-- (0=Error, 1=Warning, 2=Info, 3=Debug)
 -- Get Mod by Title as g_currentModDirectory nor g_currentModName isn't valid in specializations
 for _, mod in pairs(g_modManager.mods) do
 	if mod.title:upper() == "COURSEPLAY GPS EXTENSION" or mod.title:upper() == "COURSEPLAY GPS ERWEITERUNG" then
-		if g_modIsLoaded[tostring(mod.modName)] then	
+		if g_modIsLoaded[tostring(mod.modName)] then
 			CourseplayGpsExtension.modDirectory = mod.modDir
 			CourseplayGpsExtension.modName = mod.modName
 			break
@@ -26,7 +27,7 @@ end
 
 -- Checks if the prerequisites and conditinos are present
 function CourseplayGpsExtension.prerequisitesPresent(specializations)
-	CourseplayGpsExtension.PrintModLog(3, "Prerequisites present" .. tostring(specializations))
+	CourseplayGpsExtension.PrintModLog(3, "Prerequisites present %s", specializations)
 	return SpecializationUtil.hasSpecialization(Drivable, specializations)
        and SpecializationUtil.hasSpecialization(CpAIWorker, specializations)
 end
@@ -34,11 +35,12 @@ end
 -- Initializes the Specialization
 function CourseplayGpsExtension.initSpecialization()
 	CourseplayGpsExtension.PrintModLog(3, "Initialize Specialization")
+	CourseplayGpsExtension.LoadScripts()
 end
 
 -- Register the Functions of the Specialization
 function CourseplayGpsExtension.registerFunctions(vehicleType)
-	CourseplayGpsExtension.PrintModLog(3, "RegisterFunctions " .. tostring(vehicleType))
+	CourseplayGpsExtension.PrintModLog(3, "RegisterFunctions %s", vehicleType)
 	SpecializationUtil.registerFunction(vehicleType, "SteeringOnOff"			, CourseplayGpsExtension.SteeringOnOff)
 	SpecializationUtil.registerFunction(vehicleType, "cpEonWaypointChange"		, CourseplayGpsExtension.cpEonWaypointChange)
 	SpecializationUtil.registerFunction(vehicleType, "cpEonWaypointPassed"		, CourseplayGpsExtension.cpEonWaypointPassed)
@@ -48,6 +50,7 @@ end
 function CourseplayGpsExtension.registerEventListeners(vehicleType)
 	CourseplayGpsExtension.PrintModLog(3, "RegisterEventListeners")
 
+    SpecializationUtil.registerEventListener(vehicleType, "onPreLoad"				, CourseplayGpsExtension)
 	SpecializationUtil.registerEventListener(vehicleType, "onLoad"					, CourseplayGpsExtension)
     SpecializationUtil.registerEventListener(vehicleType, "onDelete"				, CourseplayGpsExtension)
 	SpecializationUtil.registerEventListener(vehicleType, "onRegisterActionEvents"	, CourseplayGpsExtension)
@@ -58,23 +61,39 @@ end
 -- Register Overwritten Function
 function CourseplayGpsExtension.registerOverwrittenFunctions(vehicleType)
 	CourseplayGpsExtension.PrintModLog(3, "RegisterOverwrittenFunctions")
-    SpecializationUtil.registerOverwrittenFunction(vehicleType, "updateVehiclePhysics"			, CourseplayGpsExtension.updateVehiclePhysics)
+	SpecializationUtil.registerOverwrittenFunction(vehicleType, "setSteeringInput"				, CourseplayGpsExtension.setSteeringInput)
     SpecializationUtil.registerOverwrittenFunction(vehicleType, "getAIAutomaticSteeringState"	, CourseplayGpsExtension.getAIAutomaticSteeringState)
     SpecializationUtil.registerOverwrittenFunction(vehicleType, "getAIModeSelection"			, CourseplayGpsExtension.getAIModeSelection)
 end
 
--- Event onLoad
-function CourseplayGpsExtension:onLoad(savegame)
-	CourseplayGpsExtension.PrintModLog(3, "onLoad")
+
+-- Event onPreLoad
+function CourseplayGpsExtension:onPreLoad(savegame)
+	CourseplayGpsExtension.PrintModLog(3, "onPreLoad")
 	self.spec_cpGpsExtension = {}
 	local spec = self.spec_cpGpsExtension
+	spec.SettingUtil = CourseplayGpsSettingsUtil.new(self)
+end
+
+-- Event onLoad
+function CourseplayGpsExtension:onLoad(savegame)
+	CourseplayGpsExtension.PrintModLog(3, "onLoad")	
+	local spec = self.spec_cpGpsExtension
+	spec.steeringLastEnableTime = -math.huge
+	spec.lastSteeringInputValue = 0
+
+	--- Attach to Courseplay
+	spec.SettingUtil:AddTextsToCourseplay()
+	spec.SettingUtil:CreateSettingSetup()
+	spec.SettingUtil:CreateVehicleSettings()
+
 	spec.actionEvents = {}
 	spec.steeringValue = 0
 	spec.GpsActiveAvailable = false
 	if self.isClient then
 		spec.samples = {}
     	local specAS = self["spec_aiAutomaticSteering"]
-		if specAS ~= nil then		
+		if specAS ~= nil then
 			spec.samples.engage = g_soundManager:loadSampleFromXML(self.xmlFile, "vehicle.ai.automaticSteering.sounds", "engage", self.baseDirectory, self.components, 1, AudioGroup.VEHICLE, self.i3dMappings, self)
 			spec.samples.disengage = g_soundManager:loadSampleFromXML(self.xmlFile, "vehicle.ai.automaticSteering.sounds", "disengage", self.baseDirectory, self.components, 1, AudioGroup.VEHICLE, self.i3dMappings, self)
 			spec.samples.lineEnd = g_soundManager:loadSampleFromXML(self.xmlFile, "vehicle.ai.automaticSteering.sounds", "lineEnd", self.baseDirectory, self.components, 1, AudioGroup.VEHICLE, self.i3dMappings, self)
@@ -86,7 +105,7 @@ end
 function CourseplayGpsExtension:onDelete()
 	CourseplayGpsExtension.PrintModLog(3, "onDelete")
 	local spec = self.spec_cpGpsExtension
-    if spec.samples ~= nil then
+    if spec and spec.samples ~= nil then
         g_soundManager:deleteSamples(spec.samples)
     end
 end
@@ -97,7 +116,7 @@ function CourseplayGpsExtension:onUpdate(dt)
     local specFW = self["spec_FS25_Courseplay.cpAIFieldWorker"]
 
 	if spec.ppc ~= nil and spec.GpsActive and spec.GpsActive == 1 then
-		spec.ppc:update()		
+		spec.ppc:update()
 
 	    local moveForwards = not spec.ppc:isReversing()
 		local wX, _, wZ = spec.ppc:getGoalPointPosition()
@@ -133,7 +152,13 @@ function CourseplayGpsExtension:onUpdate(dt)
 
 		local speed = self.lastSpeedReal * 3600	-- m/ms => Km/h
 		if (math.abs(speed) > 0.0) then
-			rotTime = rotTime * math.min(1, math.max(5, (30 / speed)))  -- React slower at higher speeds
+			-- Limit steering request to prevent over-shooting
+			if self.isServer then
+				rotTime = rotTime * math.min(1, math.max(5, (20 / speed)))
+			else
+				-- Clients in MP do react slower
+				rotTime = rotTime * math.min(0.5, math.max(5, (10 / speed)))
+			end
 		else
 			rotTime = 0
 		end
@@ -150,27 +175,27 @@ function CourseplayGpsExtension:onUpdate(dt)
 		else
 			spec.steeringValue = math.max(spec.steeringValue - dt*self:getAISteeringSpeed(), targetRotTime)
 		end
+
+		self:setSteeringInput(spec.steeringValue, true, InputDevice.CATEGORY.UNKNOWN)
 	end
 
-	spec.GpsActiveAvailable = self:getIsOnField() 
-								and self:hasCpCourse() 
-								and self:getCanStartCpFieldWork() 
-								and specFW.driveStrategy ~= nil 
-								and specFW.driveStrategy.fieldWorkCourse ~= nil 
+	spec.GpsActiveAvailable = self:getIsOnField()
+								and self:hasCpCourse()
+								and self:getCanStartCpFieldWork()
 
 	local toggleGpsButton = spec.actionEvents[InputAction.FS25_CourseplayGpsExtension_GPS_ONOFF]
 	if toggleGpsButton ~= nil then
 		if spec.GpsActiveAvailable then
-			local currentText	
+			local currentText
 			if spec.GpsActive == 0 or spec.GpsActive == nil then
 				currentText = g_i18n:getText("GPS_OFF", CourseplayGpsExtension.modName)
 			else
 				currentText = g_i18n:getText("GPS_ON", CourseplayGpsExtension.modName)
 			end
-			
+
 			g_inputBinding:setActionEventActive(toggleGpsButton.actionEventId, true)
 			g_inputBinding:setActionEventText(toggleGpsButton.actionEventId, currentText)
-			g_inputBinding:setActionEventTextVisibility(toggleGpsButton.actionEventId, true)				
+			g_inputBinding:setActionEventTextVisibility(toggleGpsButton.actionEventId, true)
 		else
 			g_inputBinding:setActionEventTextVisibility(toggleGpsButton.actionEventId, false)
 		end
@@ -182,7 +207,7 @@ function CourseplayGpsExtension:onUpdateTick(dt, isActiveForInput, isActiveForIn
    	if self.isClient then
 		local spec = self.spec_cpGpsExtension
 		if spec.HidePathTime then
-			spec.HidePathTime = spec.HidePathTime - dt 
+			spec.HidePathTime = spec.HidePathTime - dt
 			if spec.HidePathTime < 0 then
 				spec.HidePathTime = nil
 				self:getCpSettings().showCourse:setValue(0)
@@ -192,7 +217,7 @@ function CourseplayGpsExtension:onUpdateTick(dt, isActiveForInput, isActiveForIn
 end
 
 -- Event On Register Action Events
-function CourseplayGpsExtension:onRegisterActionEvents(isActiveForInput, isActiveForInputIgnoreSelection)    
+function CourseplayGpsExtension:onRegisterActionEvents(isActiveForInput, isActiveForInputIgnoreSelection)
 	CourseplayGpsExtension.PrintModLog(3, "onRegisterActionEvents")
     if self.isClient then
         local spec = self.spec_cpGpsExtension
@@ -208,51 +233,48 @@ end
 
 
 -- Overwritten Functions
--- Event On Update Vehicle Physics: Send steering control value to Vehicle 
-function CourseplayGpsExtension:updateVehiclePhysics(superFunc, axisForward, axisSide, doHandbrake, dt)
-	-- CourseplayGpsExtension.PrintModLog(3, "updateVehiclePhysics")
+-- Override Steering Input to deactivate GPS uppon manual steering attempt and apply steering command 
+function CourseplayGpsExtension:setSteeringInput(superFunc, inputValue, isAnalog, deviceCategory)
 	local spec = self.spec_cpGpsExtension
-  	if spec.GpsActive and spec.GpsActive == 1 and spec.course ~= nil then
-		if math.abs(axisSide) > 0.2 then
+	if spec.GpsActive and spec.GpsActive == 1 then
+		if deviceCategory == InputDevice.CATEGORY.KEYBOARD_MOUSE then
+			CourseplayGpsExtension.PrintModLog(3, "setSteeringInput Deactivate GPS by Keyboard.") 
 			self:SteeringOnOff(0)	-- GPS Off
-		end
-
-		if spec.steeringValue < 0 then
-			axisSide = -spec.steeringValue / self.maxRotTime
+		elseif deviceCategory == InputDevice.CATEGORY.UNKNOWN then
+			-- Automatic steering
+			inputValue = -inputValue
+		elseif g_time - spec.steeringLastEnableTime > 2000 then
+			local steerDiff = inputValue - spec.lastSteeringInputValue
+			if math.abs(steerDiff) > 0.2 then
+				CourseplayGpsExtension.PrintModLog(3, "setSteeringInput Deactivate GPS by Steering.") 
+				self:SteeringOnOff(0)	-- GPS Off
+			end
 		else
-			axisSide = spec.steeringValue / self.minRotTime
-		end
-
-		spec.axisSide = axisSide
+			spec.lastSteeringInputValue = inputValue
+		end		
 	else
-		spec.axisSide = axisSide
+		spec.lastSteeringInputValue = inputValue
 	end
-
-	-- call the original function to do the actual physics stuff
-	local state, result = pcall(superFunc, self, axisForward, spec.axisSide, doHandbrake, dt)
-	if not (state) then
-		CourseplayGpsExtension.PrintModLog(1, "updateVehiclePhysics: " .. tostring(result))
-		result = 0
-	end
-	return result
+	return superFunc(self, inputValue, isAnalog, deviceCategory)
 end
 
 -- Override GPS Status for Dashboard
 function CourseplayGpsExtension:getAIAutomaticSteeringState(superFunc)
-	-- CourseplayGpsExtension.PrintModLog(1, "getAIAutomaticSteeringState")
 	local spec = self.spec_cpGpsExtension
 	-- call the original function to do get the AI Steering State
 	local state, result = pcall(superFunc, self)
 	if not (state) then
-		CourseplayGpsExtension.PrintModLog(0, "getAIAutomaticSteeringState: " .. tostring(result))
+		CourseplayGpsExtension.PrintModLog(0, "getAIAutomaticSteeringState: %s", result)
 		result = AIAutomaticSteering.STATE.DISABLED
 	end
 
 	if spec.GpsActiveAvailable then
-		if result ~= AIAutomaticSteering.STATE.DISABLED then
-			self:setAIAutomaticSteeringCourse(nil)	-- Empty the Giants AI Course. 
-			-- This enables using the same key to activate auto steering, regardless using the Giants or CoursePlay tracking
-			-- TBD: Maybe checking the same key binding or setting or any other good idea
+		if result ~= AIAutomaticSteering.STATE.DISABLED and self:getCpSettings().cpGpsDisableGiantsAiSteering:getValue() then
+			self:setAIAutomaticSteeringCourse(nil)	-- Empty the Giants AI Course.
+			local warning = g_i18n:getText("DisableGiantsAiSteering_warning")
+			if warning ~= nil then
+				g_currentMission:showBlinkingWarning(warning, 5000)
+			end
 		end
 
 		if result == AIAutomaticSteering.STATE.DISABLED then
@@ -268,12 +290,11 @@ end
 
 -- Override GPS Mode for Dashboard
 function CourseplayGpsExtension:getAIModeSelection(superFunc)
-	-- CourseplayGpsExtension.PrintModLog(1, "getAIModeSelection")
 	local spec = self.spec_cpGpsExtension
 	-- call the original function to do get the AI Steering State
 	local state, result = pcall(superFunc, self)
 	if not (state) then
-		CourseplayGpsExtension.PrintModLog(0, "getAIModeSelection: " .. tostring(result))
+		CourseplayGpsExtension.PrintModLog(0, "getAIModeSelection: %s", result)
 		result = AIModeSelection.MODE.WORKER
 	end
 
@@ -289,18 +310,35 @@ function CourseplayGpsExtension.ToggleSteeringOnOff(self, actionName, inputValue
 	self:SteeringOnOff()
 end
 
--- PPC Callbacks --
--- Called on WayPoint changed
+-- Public Functions --
+-- PPC Callback: Called on WayPoint changed
 function CourseplayGpsExtension:cpEonWaypointChange(ix, course)
-	CourseplayGpsExtension.PrintModLog(3, "onWaypointChange " .. tostring(ix))	
+	CourseplayGpsExtension.PrintModLog(4, "onWaypointChange %s", ix)
 	local spec = self.spec_cpGpsExtension
-	
-	if spec.LastNodeInRow ~=nil and spec.LastNodeInRow == ix then
-		CourseplayGpsExtension.PrintModLog(3, "updateVehiclePhysics: End of the row reached. Stop GPS")
-		self:SteeringOnOff(2)	-- GPS Off
+
+	if spec.SetPpcNormalDistanceIndex ~= nil and ix == spec.SetPpcNormalDistanceIndex then
+		spec.SetPpcNormalDistanceIndex = nil
+		spec.ppc:setNormalLookaheadDistance()
+		CourseplayGpsExtension.PrintModLog(3, "onWaypointChange: PPC Normal Distance")
 	end
+	if spec.SetPpcShortDistanceIndex ~= nil and ix == spec.SetPpcShortDistanceIndex then
+		spec.SetPpcShortDistanceIndex = nil
+		spec.ppc:setShortLookaheadDistance()
+		spec.SetPpcNormalDistanceIndex = ix + 3
+		CourseplayGpsExtension.PrintModLog(3, "onWaypointChange: PPC Short Distance")
+	end
+
+	if spec.LastNodeInRow ~=nil and spec.LastNodeInRow == ix then 
+		if self:getCpSettings().cpGpsDisableAtEndOfRow:getValue() then
+			CourseplayGpsExtension.PrintModLog(3, "onWaypointChange: End of the row reached. Stop GPS")
+			self:SteeringOnOff(2)	-- GPS Off
+		else
+			spec.SetPpcShortDistanceIndex = ix + 1
+		end
+	end
+
 	if course:isLastWaypointIx(ix) then
-		CourseplayGpsExtension.PrintModLog(3, "updateVehiclePhysics: End of the course reached. Stop GPS")
+		CourseplayGpsExtension.PrintModLog(3, "onWaypointChange: End of the course reached. Stop GPS")
 		self:SteeringOnOff(2)	-- GPS Off
 	end
 
@@ -308,18 +346,17 @@ function CourseplayGpsExtension:cpEonWaypointChange(ix, course)
 	self:updateCpCourseDisplayVisibility()
 end
 
--- Called on WayPoint passed
+-- PPC Callback: Called on WayPoint passed
 function CourseplayGpsExtension:cpEonWaypointPassed(ix, course)
-	CourseplayGpsExtension.PrintModLog(3, "onWaypointPassed " .. tostring(ix))	
+	CourseplayGpsExtension.PrintModLog(4, "onWaypointPassed %s", ix)
 	local spec = self.spec_cpGpsExtension
 	spec.LastNodeInRow = course:getNextRowStartIx(ix)
 end
 
--- Local Functions --
 -- Toggle Steering On / Off
 -- State: nil=Toggle 0=Off, 1=On, 2=Off end reached
 function CourseplayGpsExtension:SteeringOnOff(state)
-	CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff ("  .. tostring(state) .. ")")	
+	CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff (%s)", state)
 	local spec = self.spec_cpGpsExtension
     local specFW = self["spec_FS25_Courseplay.cpAIFieldWorker"]
 
@@ -328,21 +365,37 @@ function CourseplayGpsExtension:SteeringOnOff(state)
 		spec.GpsActive = 0		-- GPS Off
 	else
 		if spec.ppc == nil then
-			spec.ppc = specFW.driveStrategy.ppc
+			spec.ppc = spec.SettingUtil:CreateDynamicObject("FS25_Courseplay.PurePursuitController", self)
+			CourseplayGpsExtension.PrintModLog(3, "Created PPC (%s)", spec.ppc)
 			spec.ppc:registerListeners(self, 'cpEonWaypointPassed', 'cpEonWaypointChange')
-			CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Register PPC")	
+			CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Register PPC")
 		end
 
+		local settingValue = self:getCpSettings().cpGpsDisableCruiseControl:getValue()
+		CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Setting=%s", settingValue)
+
+		local displayMode = self:getCpSettings().cpGpsPathDisplay:getValue()
 		if (state == nil and (spec.GpsActive == 0 or spec.GpsActive == nil)) or
-		   (state ~= nil and state == 1) 
+		   (state ~= nil and state == 1)
 		then
 			local _, _, ClosestIdxInDirection, _ = spec.course:getNearestWaypoints(self:getAIDirectionNode())
 			spec.ppc:setCourse(spec.course)
 			spec.ppc:initialize(ClosestIdxInDirection)
-			CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Starting at Index " .. tostring(ClosestIdxInDirection))	
+			spec.ppc:setShortLookaheadDistance()
+			spec.SetPpcNormalDistanceIndex = ClosestIdxInDirection + 2
+			CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Starting at Index %s" , ClosestIdxInDirection)
 			spec.LastNodeInRow = nil
+
+			if displayMode >= 0 and displayMode < 4 then
+				self:getCpSettings().showCourse:setValue(displayMode)
+			end
+
 			spec.CourseVisibility = self:getCpSettings().showCourse:getValue()
-			spec.HidePathTime = 3000
+			local timeToHide = self:getCpSettings().cpGpsHidePathTime:getValue()
+			if timeToHide > 0 then
+				spec.HidePathTime = 1000 * timeToHide
+			end
+			spec.steeringLastEnableTime = g_time
 			spec.GpsActive = 1 		-- GPS On
 	        if self.isClient and spec.samples.engage ~= nil then
 				g_soundManager:playSample(spec.samples.engage)
@@ -355,7 +408,9 @@ function CourseplayGpsExtension:SteeringOnOff(state)
 			end
 	        if self.isClient then
 				if (state and state == 2) then
-					if self:getCruiseControlState() == Drivable.CRUISECONTROL_STATE_ACTIVE then
+					if self:getCruiseControlState() == Drivable.CRUISECONTROL_STATE_ACTIVE 
+						and self:getCpSettings().cpGpsDisableCruiseControl:getValue() 
+					then
 						self:setCruiseControlState(Drivable.CRUISECONTROL_STATE_OFF)
 					end
 
@@ -372,10 +427,12 @@ function CourseplayGpsExtension:SteeringOnOff(state)
 	end
 end
 
+-- Local Functions --
+
 -- Print into Log file
-function CourseplayGpsExtension.PrintModLog(severity, text)
+function CourseplayGpsExtension.PrintModLog(severity, text, ...)
 	local level = CourseplayGpsExtension.LogLevel
-	if level >= severity then		
+	if level >= severity then
 		local prefix
 		if severity == 0 then 		-- Error
 			prefix = "ERROR  :"
@@ -388,7 +445,15 @@ function CourseplayGpsExtension.PrintModLog(severity, text)
 		else
 			prefix = "       :"
 		end
-		
-		print("FS25_CourseplayGps " .. prefix .. tostring(text))
+
+		print("FS25_CourseplayGps " .. prefix .. string.format(text , ...))
 	end
+end
+
+-- Load additional Scripts
+function CourseplayGpsExtension.LoadScripts()
+	local scriptFolder = CourseplayGpsExtension.modDirectory
+	CourseplayGpsExtension.PrintModLog(3, "Loading scripts from %s", scriptFolder)
+
+	source(scriptFolder .. "CourseplayGpsSettingsUtil.lua")
 end

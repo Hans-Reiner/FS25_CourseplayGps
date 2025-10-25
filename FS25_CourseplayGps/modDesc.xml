@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<modDesc descVersion="92">
+<modDesc descVersion="103">
 	<author>Schluppe</author>
-	<version>1.0.1.0</version>
+	<version>1.0.2.0</version>
 	
 	<title>
 		<en>Courseplay GPS Extension</en>
@@ -9,12 +9,40 @@
 	</title>
 	
 	<description>
-		<en>This mod adds automatic steering to Vehicles based on Courseplay curses.</en>
-		<de>Diese Mod fügt die Spurführung auf Basis von Courseplay Kursen hinzu.</de>
+	<en><![CDATA[Courseplay GPS Extension
+Description: This mod adds automatic steering to Vehicles based on Courseplay curses.
+GitHub link: https://github.com/Hans-Reiner/FS25_CourseplayGps
+
+Changelog 1.0.0.0:
+- Initial Implementation
+
+Changelog 1.0.1.0:
+- Hide path overlay when activating GPS tracking
+
+Changelog 1.0.2.0:
+- Adding multiplayer functionality
+- Adding parameters to control the behavior of the gps tracking
+- Fixing some minor issues and improvements
+]]></en>
+	<de><![CDATA[Courseplay GPS Erweiterung
+Beschreibung: Diese Mod fügt die Spurführung auf Basis von Courseplay Kursen hinzu.
+GitHub-Link: https://github.com/Hans-Reiner/FS25_CourseplayGps
+
+Changelog 1.0.0.0:
+- Initiale Implementierung.
+
+Changelog 1.0.1.0
+- Ausblenden des Kurses, wenn die Spurführung aktiviert wird.
+
+Changelog 1.0.2.0:
+- Multiplayer Funktion hinzugefügt
+- Parameter zum Einstellen der Spurführung hinzugefügt
+- Lösen kleinere Probleme und Verbesserungen
+]]></de>
 	</description>
 	
-	<iconFilename>store.dds</iconFilename>
-	<multiplayer supported="false"/>
+	<iconFilename>icon_CourseplayGps.dds</iconFilename>
+	<multiplayer supported="true"/>
 	
 	<extraSourceFiles>
 		<sourceFile filename="RegisterSpecialization.lua" />
@@ -32,6 +60,74 @@
 		<text name="GPS_ON">
 			<de>GPS ein</de>
 			<en>GPS on</en>
+		</text>
+		<text name="ShowCourse_Deactivated">
+			<de>Ausgeblendet</de>
+			<en>Hidden</en>
+		</text>
+		<text name="ShowCourse_StartStop">
+			<de>Nur Start/Ende</de>
+			<en>Start/stop only</en>
+		</text>
+		<text name="ShowCourse_CurrentWaypoint">
+			<de>Aktuelle Wegpunkte</de>
+			<en>Current waypoints</en>
+		</text>
+		<text name="ShowCourse_All">
+			<de>Alle Wegpunkte</de>
+			<en>All waypoints</en>
+		</text>
+		<text name="ShowCourse_Unchanged">
+			<de>Unverändert</de>
+			<en>Unchanged</en>
+		</text>
+		<text name="DisableGiantsAiSteering_warning">
+			<de>Kurs aus der Giants Spurführung gelöscht, da ein Kurs in Courseplay GPS aktiv ist</de>
+			<en>Course of GPS tracking removed due to active course in Courseplay GPS.</en>
+		</text>
+		<text name="FS25_CourseplayGps_GPS_TRACKING">
+			<de>GPS Spurführung</de>
+			<en>GPS Tracking</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableCruiseControl_title">
+			<de>Abschaltung Tempomat am Ende der Bahn</de>
+			<en>Disable cruise control at the end of the row</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableCruiseControl_tooltip">
+			<de>Wenn dieser Wert aktiviert ist, dann wird am Ende der Bahn der Tempomat absgeschaltet und das Fahrzeug rollt aus.</de>
+			<en>The vehicle will automatically disable the cruise control at the end of the row.</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsHidePathTime_title">
+			<de>Zeit zum Ausblenden der CP Punkte beim Aktivieren</de>
+			<en>Time to hide the path after activation</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsHidePathTime_tooltip">
+			<de>Gibt die Zeit in Sekunden an, nachdem die Punkte vom Kurs ausgeblendet werden, wenn die Spurführung aktiviert wird. Bei 0 ist das Ausblenden deaktiviert.</de>
+			<en>Defines the time in seconds after which the way points from the course are hidden when GPS tracking is enabled. A value of 0 disables hiding the path.</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsPathDisplay_title">
+			<de>Kurs anzeigen</de>
+			<en>Show course</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsPathDisplay_tooltip">
+			<de>Zeigt den Kurs des aktuell gewählten Fahrzeugs</de>
+			<en>Show the current course of the vehicle.</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableGiantsAiSteering_title">
+			<de>Leeren der Giants Spurführung</de>
+			<en>Clearing the course of Giants auto-steering</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableGiantsAiSteering_tooltip">
+			<de>Sobald ein Kurs in CP geladen ist, dann wird der Kurs in der Giants-Spurführung geleert. Das hat den Vorteil, dass man die Aktivierung auf die gleichen Tasten legen kann und somit immer gleich die Spurführung ein-/ausschalten kann. Wenn beide Funktionen geladene Kurse haben gewinnt sonst einer. Wenn die Aktivierung unterschiedliche Tastenbelegungen haben, kann die Funktion absgeschaltet bleiben.</de>
+			<en>As soon as a course is loaded into CP, the course of the Giants' guidance system is cleared. This has the advantage that you can assign same key-bindung to the activation, allowing you to always turn the guidance on and off with the same key. If both functions have a loaded courses, one wins. If the activations have different key assignments, the function can remain disabled.</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableAtEndOfRow_title">
+			<de>Abschaltung der Spurführung am Ende der Bahn</de>
+			<en>Disable GPS tracking at the end of the row</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableAtEndOfRow_tooltip">
+			<de>Wenn dieser Wert aktiviert ist, dann wird am Ende der Bahn der die Spurführung absgeschaltet.</de>
+			<en>The vehicle will automatically disable the GPS tracking at the end of the row.</en>
 		</text>
 	</l10n>
 
