@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------------------------
--- Courseplay Gps Extension (V1.0.2)
+-- Courseplay Gps Extension (V1.0.3)
 ----------------------------------------------------------------------------------------------------
 -- Purpose:  Courseplay Gps Extension
 -- Authors:  Schluppe
@@ -7,9 +7,11 @@
 -- Copyright (c) none - free to use 2025
 --
 -- History:
---	V1.0.0 	13.10.2025 - Initial implementation
---	V1.0.1 	15.10.2025 - Change Track visibility when auto steering is active
---	V1.0.2 	18.10.2025 - Adding Parameter to control the behavior, Multi-Player
+--  V1.0.0  13.10.2025 - Initial implementation
+--  V1.0.1  15.10.2025 - Change Track visibility when auto steering is active
+--  V1.0.2  18.10.2025 - Adding Parameter to control the behavior, Multi-Player
+--  V1.0.3  26.10.2025 - Fix an issue linked to steering wheel not centered. 
+--                     - Options to control cruise control and deactivation of automatic steering
 ----------------------------------------------------------------------------------------------------
 CourseplayGpsExtension = {}
 CourseplayGpsExtension.LogLevel = 1	-- (0=Error, 1=Warning, 2=Info, 3=Debug)
@@ -237,6 +239,7 @@ end
 function CourseplayGpsExtension:setSteeringInput(superFunc, inputValue, isAnalog, deviceCategory)
 	local spec = self.spec_cpGpsExtension
 	if spec.GpsActive and spec.GpsActive == 1 then
+		-- CourseplayGpsExtension.PrintModLog(4, "setSteeringInput deviceCategory=%s inputValue=%s", deviceCategory, inputValue) 
 		if deviceCategory == InputDevice.CATEGORY.KEYBOARD_MOUSE then
 			CourseplayGpsExtension.PrintModLog(3, "setSteeringInput Deactivate GPS by Keyboard.") 
 			self:SteeringOnOff(0)	-- GPS Off
@@ -245,10 +248,12 @@ function CourseplayGpsExtension:setSteeringInput(superFunc, inputValue, isAnalog
 			inputValue = -inputValue
 		elseif g_time - spec.steeringLastEnableTime > 2000 then
 			local steerDiff = inputValue - spec.lastSteeringInputValue
+			-- CourseplayGpsExtension.PrintModLog(4, "setSteeringInput deviceCategory=%s inputValue=%s steeringDifference=%s", deviceCategory, inputValue, steerDiff) 
 			if math.abs(steerDiff) > 0.2 then
 				CourseplayGpsExtension.PrintModLog(3, "setSteeringInput Deactivate GPS by Steering.") 
 				self:SteeringOnOff(0)	-- GPS Off
 			end
+			return	-- When GPS tracking is active, we are not calling the super-function to ignore the manual steering command
 		else
 			spec.lastSteeringInputValue = inputValue
 		end		
@@ -328,18 +333,46 @@ function CourseplayGpsExtension:cpEonWaypointChange(ix, course)
 		CourseplayGpsExtension.PrintModLog(3, "onWaypointChange: PPC Short Distance")
 	end
 
+	-- Last point in the row
+	local disableSteering = self:getCpSettings().cpGpsDisableSteering:getValue()
+	local disableCruiseCtrl = self:getCpSettings().cpGpsDisableCruiseControl:getValue()
 	if spec.LastNodeInRow ~=nil and spec.LastNodeInRow == ix then 
-		if self:getCpSettings().cpGpsDisableAtEndOfRow:getValue() then
-			CourseplayGpsExtension.PrintModLog(3, "onWaypointChange: End of the row reached. Stop GPS")
+		if disableSteering == 1 then
+			CourseplayGpsExtension.PrintModLog(2, "onWaypointChange: End of the row reached. Stop GPS")
 			self:SteeringOnOff(2)	-- GPS Off
 		else
 			spec.SetPpcShortDistanceIndex = ix + 1
 		end
+		if disableCruiseCtrl == 1 and self:getCruiseControlState() == Drivable.CRUISECONTROL_STATE_ACTIVE then
+			CourseplayGpsExtension.PrintModLog(2, "onWaypointChange: End of the row reached. Stop Cruise Control")
+			self:setCruiseControlState(Drivable.CRUISECONTROL_STATE_OFF)
+		end		
 	end
 
+	-- WP is on connecting path or headland turning 
+	if course:isOnConnectingPath(ix) or course:isHeadlandTurnAtIx(ix) then 
+		if disableSteering >= 1 and disableSteering <= 2 then
+			CourseplayGpsExtension.PrintModLog(2, "onWaypointChange: Connecting path reached. Stop GPS")
+			self:SteeringOnOff(2)	-- GPS Off
+		else
+			spec.SetPpcShortDistanceIndex = ix + 1
+		end
+		if disableCruiseCtrl >= 1 and disableCruiseCtrl <= 2 and self:getCruiseControlState() == Drivable.CRUISECONTROL_STATE_ACTIVE then
+			CourseplayGpsExtension.PrintModLog(2, "onWaypointChange: Connecting path reached. Stop Cruise Control")
+			self:setCruiseControlState(Drivable.CRUISECONTROL_STATE_OFF)
+		end		
+	end
+
+	-- End of course reached
 	if course:isLastWaypointIx(ix) then
-		CourseplayGpsExtension.PrintModLog(3, "onWaypointChange: End of the course reached. Stop GPS")
-		self:SteeringOnOff(2)	-- GPS Off
+		if disableCruiseCtrl >= 1 and disableCruiseCtrl <= 3 then
+			CourseplayGpsExtension.PrintModLog(2, "onWaypointChange: End of the course reached. Stop GPS")
+			self:SteeringOnOff(2)	-- GPS Off
+		end
+		if disableCruiseCtrl >= 1 and disableCruiseCtrl <= 3  and self:getCruiseControlState() == Drivable.CRUISECONTROL_STATE_ACTIVE then
+			CourseplayGpsExtension.PrintModLog(2, "onWaypointChange: End of the course reached. Stop Cruise Control")
+			self:setCruiseControlState(Drivable.CRUISECONTROL_STATE_OFF)
+		end		
 	end
 
 	course:setCurrentWaypointIx(ix)
@@ -370,9 +403,6 @@ function CourseplayGpsExtension:SteeringOnOff(state)
 			spec.ppc:registerListeners(self, 'cpEonWaypointPassed', 'cpEonWaypointChange')
 			CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Register PPC")
 		end
-
-		local settingValue = self:getCpSettings().cpGpsDisableCruiseControl:getValue()
-		CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Setting=%s", settingValue)
 
 		local displayMode = self:getCpSettings().cpGpsPathDisplay:getValue()
 		if (state == nil and (spec.GpsActive == 0 or spec.GpsActive == nil)) or
@@ -408,12 +438,6 @@ function CourseplayGpsExtension:SteeringOnOff(state)
 			end
 	        if self.isClient then
 				if (state and state == 2) then
-					if self:getCruiseControlState() == Drivable.CRUISECONTROL_STATE_ACTIVE 
-						and self:getCpSettings().cpGpsDisableCruiseControl:getValue() 
-					then
-						self:setCruiseControlState(Drivable.CRUISECONTROL_STATE_OFF)
-					end
-
 					if spec.samples.lineEnd ~= nil then
 						g_soundManager:playSample(spec.samples.lineEnd)
 					end

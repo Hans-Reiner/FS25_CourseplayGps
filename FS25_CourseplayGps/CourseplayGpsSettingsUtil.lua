@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------------------------
--- Courseplay Gps Extension (V1.0.0)
+-- Courseplay Gps Extension (V1.0.1)
 ----------------------------------------------------------------------------------------------------
 -- Purpose:  Courseplay Settings Handling
 -- Authors:  Schluppe
@@ -7,7 +7,8 @@
 -- Copyright (c) none - free to use 2025
 --
 -- History:
---	V1.0.0 	18.10.2025 - Initial implementation, Adding Settings to CP Vehicle settings screen
+--  V1.0.0  18.10.2025 - Initial implementation, Adding Settings to CP Vehicle settings screen
+--  V1.0.1  24.10.2025 - Options to control cruise control and deactivation of automatic steering
 ----------------------------------------------------------------------------------------------------
 CourseplayGpsSettingsUtil = {}
 local CourseplayGpsSettingsUtil_mt = Class(CourseplayGpsSettingsUtil)
@@ -45,10 +46,32 @@ function CourseplayGpsSettingsUtil:CreateSettingsParameters(uniqueID)
 	end
 
 	uniqueID = uniqueID + 1
-	table.insert(parameters, self:CreateSettingsParameter(uniqueID, "AIParameterBooleanSetting" , "cpGpsDisableCruiseControl", true))
+	local parameter = self:CreateSettingsParameter(uniqueID, "AIParameterSettingList" , "cpGpsDisableCruiseControl", 1, 0, 3)
+	if parameter ~= nil then
+		table.insert(parameter.values, 0)
+		table.insert(parameter.texts, g_i18n:getText("WpTrigger_Never"))
+		table.insert(parameter.values, 1)
+		table.insert(parameter.texts, g_i18n:getText("WpTrigger_EndOfRow"))
+		table.insert(parameter.values, 2)
+		table.insert(parameter.texts, g_i18n:getText("WpTrigger_OnConnectionPoints"))
+		table.insert(parameter.values, 3)
+		table.insert(parameter.texts, g_i18n:getText("WpTrigger_EndOfCourse"))
+		table.insert(parameters, parameter)
+	end
+
 	uniqueID = uniqueID + 1
-	table.insert(parameters, self:CreateSettingsParameter(uniqueID, "AIParameterBooleanSetting" , "cpGpsDisableAtEndOfRow", true))
-	uniqueID = uniqueID + 1
+	local parameter = self:CreateSettingsParameter(uniqueID, "AIParameterSettingList" , "cpGpsDisableSteering", 1, 0, 3)
+	if parameter ~= nil then
+		table.insert(parameter.values, 0)
+		table.insert(parameter.texts, g_i18n:getText("WpTrigger_Never"))
+		table.insert(parameter.values, 1)
+		table.insert(parameter.texts, g_i18n:getText("WpTrigger_EndOfRow"))
+		table.insert(parameter.values, 2)
+		table.insert(parameter.texts, g_i18n:getText("WpTrigger_OnConnectionPoints"))
+		table.insert(parameter.values, 3)
+		table.insert(parameter.texts, g_i18n:getText("WpTrigger_EndOfCourse"))		
+		table.insert(parameters, parameter)
+	end
 
 	CourseplayGpsExtension.PrintModLog(3, "%s parameters for settings created.", #parameters)
 	return parameters

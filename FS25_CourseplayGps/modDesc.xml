@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="103">
 	<author>Schluppe</author>
-	<version>1.0.2.0</version>
+	<version>1.0.3.0</version>
 	
 	<title>
 		<en>Courseplay GPS Extension</en>
@@ -23,6 +23,10 @@ Changelog 1.0.2.0:
 - Adding multiplayer functionality
 - Adding parameters to control the behavior of the gps tracking
 - Fixing some minor issues and improvements
+
+Changelog 1.0.3.0:
+- Extend options to control deactivation of gps tracking and cruise control
+- Fix an issue linked to steering wheel not centered while activating 
 ]]></en>
 	<de><![CDATA[Courseplay GPS Erweiterung
 Beschreibung: Diese Mod fügt die Spurführung auf Basis von Courseplay Kursen hinzu.
@@ -38,6 +42,10 @@ Changelog 1.0.2.0:
 - Multiplayer Funktion hinzugefügt
 - Parameter zum Einstellen der Spurführung hinzugefügt
 - Lösen kleinere Probleme und Verbesserungen
+
+Changelog 1.0.3.0:
+- Optionen zum Deaktivieren der Spurführung und des Tempomats erweitert
+- Fix wenn ein Lenkrad beim Aktivieren nicht zentriert ist.
 ]]></de>
 	</description>
 	
@@ -81,6 +89,22 @@ Changelog 1.0.2.0:
 			<de>Unverändert</de>
 			<en>Unchanged</en>
 		</text>
+		<text name="WpTrigger_Never">
+			<de>Niemals</de>
+			<en>Never</en>
+		</text>		
+		<text name="WpTrigger_EndOfRow">
+			<de>Ende der Reihe</de>
+			<en>End of row</en>
+		</text>		
+		<text name="WpTrigger_OnConnectionPoints">
+			<de>An Verbindungspunkte</de>
+			<en>On connecting path</en>
+		</text>		
+		<text name="WpTrigger_EndOfCourse">
+			<de>Am Ende</de>
+			<en>End of course</en>
+		</text>		
 		<text name="DisableGiantsAiSteering_warning">
 			<de>Kurs aus der Giants Spurführung gelöscht, da ein Kurs in Courseplay GPS aktiv ist</de>
 			<en>Course of GPS tracking removed due to active course in Courseplay GPS.</en>
@@ -90,12 +114,12 @@ Changelog 1.0.2.0:
 			<en>GPS Tracking</en>
 		</text>
 		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableCruiseControl_title">
-			<de>Abschaltung Tempomat am Ende der Bahn</de>
-			<en>Disable cruise control at the end of the row</en>
+			<de>Abschaltung Tempomat</de>
+			<en>Disable cruise control</en>
 		</text>
 		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableCruiseControl_tooltip">
-			<de>Wenn dieser Wert aktiviert ist, dann wird am Ende der Bahn der Tempomat absgeschaltet und das Fahrzeug rollt aus.</de>
-			<en>The vehicle will automatically disable the cruise control at the end of the row.</en>
+			<de>Mit diesem Wert wird definiert, wann der Tempomat abgeschaltet wird.</de>
+			<en>Defines the moment of disabling the cruise control.</en>
 		</text>
 		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsHidePathTime_title">
 			<de>Zeit zum Ausblenden der CP Punkte beim Aktivieren</de>
@@ -121,13 +145,13 @@ Changelog 1.0.2.0:
 			<de>Sobald ein Kurs in CP geladen ist, dann wird der Kurs in der Giants-Spurführung geleert. Das hat den Vorteil, dass man die Aktivierung auf die gleichen Tasten legen kann und somit immer gleich die Spurführung ein-/ausschalten kann. Wenn beide Funktionen geladene Kurse haben gewinnt sonst einer. Wenn die Aktivierung unterschiedliche Tastenbelegungen haben, kann die Funktion absgeschaltet bleiben.</de>
 			<en>As soon as a course is loaded into CP, the course of the Giants' guidance system is cleared. This has the advantage that you can assign same key-bindung to the activation, allowing you to always turn the guidance on and off with the same key. If both functions have a loaded courses, one wins. If the activations have different key assignments, the function can remain disabled.</en>
 		</text>
-		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableAtEndOfRow_title">
-			<de>Abschaltung der Spurführung am Ende der Bahn</de>
-			<en>Disable GPS tracking at the end of the row</en>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableSteering_title">
+			<de>Abschaltung der Spurführung</de>
+			<en>Disable GPS tracking</en>
 		</text>
-		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableAtEndOfRow_tooltip">
-			<de>Wenn dieser Wert aktiviert ist, dann wird am Ende der Bahn der die Spurführung absgeschaltet.</de>
-			<en>The vehicle will automatically disable the GPS tracking at the end of the row.</en>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableSteering_tooltip">
+			<de>Mit diesem Wert wird definiert, wann die Spurführung abgeschaltet wird.</de>
+			<en>Defines the moment of disabling the GPS tracking.</en>
 		</text>
 	</l10n>
 
