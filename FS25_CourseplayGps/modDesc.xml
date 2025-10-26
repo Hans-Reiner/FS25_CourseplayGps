@@ -98,7 +98,7 @@ Changelog 1.0.3.0:
 			<en>End of row</en>
 		</text>		
 		<text name="WpTrigger_OnConnectionPoints">
-			<de>An Verbindungspunkte</de>
+			<de>An Verbindungspunkten</de>
 			<en>On connecting path</en>
 		</text>		
 		<text name="WpTrigger_EndOfCourse">
