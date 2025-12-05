@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="103">
 	<author>Schluppe</author>
-	<version>1.0.3.0</version>
+	<version>1.0.5.0</version>
 	
 	<title>
 		<en>Courseplay GPS Extension</en>
@@ -27,6 +27,12 @@ Changelog 1.0.2.0:
 Changelog 1.0.3.0:
 - Extend options to control deactivation of gps tracking and cruise control
 - Fix an issue linked to steering wheel not centered while activating 
+
+Changelog 1.0.4.0:
+- Evaluating if waypoint should be used by Pathfinder to trigger deactivation
+
+Changelog 1.0.5.0:
+- Fix an issue causing a crash in some conditions
 ]]></en>
 	<de><![CDATA[Courseplay GPS Erweiterung
 Beschreibung: Diese Mod fügt die Spurführung auf Basis von Courseplay Kursen hinzu.
@@ -46,6 +52,12 @@ Changelog 1.0.2.0:
 Changelog 1.0.3.0:
 - Optionen zum Deaktivieren der Spurführung und des Tempomats erweitert
 - Fix wenn ein Lenkrad beim Aktivieren nicht zentriert ist.
+
+Changelog 1.0.4.0:
+- Auswerten ob ein Punkt den Pfadfinder verwendet, um die Deaktivierung zu triggern.
+
+Changelog 1.0.5.0:
+- Fehler behoben, der in manchen Situationen einen Skriptfehler auslöst.
 ]]></de>
 	</description>
 	
@@ -55,6 +67,10 @@ Changelog 1.0.3.0:
 	<extraSourceFiles>
 		<sourceFile filename="RegisterSpecialization.lua" />
 	</extraSourceFiles>	
+
+	<dependencies>				
+		<dependency>FS25_Courseplay</dependency>
+    </dependencies>
 
 	<l10n>
 		<text name="input_FS25_CourseplayGpsExtension_GPS_ONOFF">

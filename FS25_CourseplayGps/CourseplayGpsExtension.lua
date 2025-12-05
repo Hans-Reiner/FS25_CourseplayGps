@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------------------------
--- Courseplay Gps Extension (V1.0.3)
+-- Courseplay Gps Extension (V1.0.5)
 ----------------------------------------------------------------------------------------------------
 -- Purpose:  Courseplay Gps Extension
 -- Authors:  Schluppe
@@ -12,6 +12,8 @@
 --  V1.0.2  18.10.2025 - Adding Parameter to control the behavior, Multi-Player
 --  V1.0.3  26.10.2025 - Fix an issue linked to steering wheel not centered. 
 --                     - Options to control cruise control and deactivation of automatic steering
+--  V1.0.4  28.10.2025 - Evaluating if waypoint should be used by Pathfinder to trigger deactivation
+--  V1.0.5  06.12.2025 - Fix an issue on calling vehicle:hasCpCourse() 
 ----------------------------------------------------------------------------------------------------
 CourseplayGpsExtension = {}
 CourseplayGpsExtension.LogLevel = 1	-- (0=Error, 1=Warning, 2=Info, 3=Debug)
@@ -181,9 +183,13 @@ function CourseplayGpsExtension:onUpdate(dt)
 		self:setSteeringInput(spec.steeringValue, true, InputDevice.CATEGORY.UNKNOWN)
 	end
 
-	spec.GpsActiveAvailable = self:getIsOnField()
+	if type(self.getIsOnField) == "function" and type(self.hasCpCourse) == "function" and type(self.getCanStartCpFieldWork) == "function" then
+		spec.GpsActiveAvailable = self:getIsOnField()
 								and self:hasCpCourse()
 								and self:getCanStartCpFieldWork()
+	else
+		spec.GpsActiveAvailable = false;
+	end
 
 	local toggleGpsButton = spec.actionEvents[InputAction.FS25_CourseplayGpsExtension_GPS_ONOFF]
 	if toggleGpsButton ~= nil then
@@ -350,7 +356,7 @@ function CourseplayGpsExtension:cpEonWaypointChange(ix, course)
 	end
 
 	-- WP is on connecting path or headland turning 
-	if course:isOnConnectingPath(ix) or course:isHeadlandTurnAtIx(ix) then 
+	if course:isOnConnectingPath(ix) or course:isHeadlandTurnAtIx(ix) or course:shouldUsePathfinderToNextWaypoint(ix) then 
 		if disableSteering >= 1 and disableSteering <= 2 then
 			CourseplayGpsExtension.PrintModLog(2, "onWaypointChange: Connecting path reached. Stop GPS")
 			self:SteeringOnOff(2)	-- GPS Off
