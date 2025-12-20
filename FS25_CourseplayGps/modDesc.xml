@@ -1,64 +1,97 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<modDesc descVersion="103">
+<modDesc descVersion="105">
 	<author>Schluppe</author>
-	<version>1.0.5.0</version>
+	<version>1.0.0.0</version>
 	
 	<title>
 		<en>Courseplay GPS Extension</en>
 		<de>Courseplay GPS Erweiterung</de>
+		<fr>Extension GPS Courseplay</fr>
 	</title>
 	
 	<description>
 	<en><![CDATA[Courseplay GPS Extension
 Description: This mod adds automatic steering to Vehicles based on Courseplay curses.
-GitHub link: https://github.com/Hans-Reiner/FS25_CourseplayGps
+In order to use this mod there is the need to have Courseplay (https://github.com/Courseplay/Courseplay_FS25) installed.
 
-Changelog 1.0.0.0:
-- Initial Implementation
+Afterwards you can use Field courses to enable GPS tracking when driving tractors or harvesters. 
+The motivation was to have the chance to smoothly swap between the CP helper and manual driving, but still using GPS tracking. 
+The Giants automatic steering does come with own courses might causing an offset or different tracks than CoursePlay uses. 
+In general does the CP course generator offer much more options to control the details of courses incl. the option to load and save them. 
+An example is cutting the grass (10m working width) and afterwards picking it up by simply loading the same course.
 
-Changelog 1.0.1.0:
-- Hide path overlay when activating GPS tracking
 
-Changelog 1.0.2.0:
-- Adding multiplayer functionality
-- Adding parameters to control the behavior of the gps tracking
-- Fixing some minor issues and improvements
+How to use this mod:
+- Assign an activation key in the settings
+- Generate or load a CP course
+- As from this moment the you can activate the automatic steering when driving onto a field
+- The system picks the closest way points and start to steer automatically
 
-Changelog 1.0.3.0:
-- Extend options to control deactivation of gps tracking and cruise control
-- Fix an issue linked to steering wheel not centered while activating 
+Features:
+- Automatically follows the CP course
+- The system is foreseen for working on fields only.
 
-Changelog 1.0.4.0:
-- Evaluating if waypoint should be used by Pathfinder to trigger deactivation
-
-Changelog 1.0.5.0:
-- Fix an issue causing a crash in some conditions
+Parameters to control the following features:
+- GPS tracking disabled (end of the row, end of the course, on connecting path or never)
+- Disable cruise control (end of the row, end of the course, on connecting path or never)
+- Remove Giants automatic steering courses when a CP course is loaded
+- Define the mode to show the path of the course
+- Time to hide the path after activating the automatic steering
 ]]></en>
 	<de><![CDATA[Courseplay GPS Erweiterung
 Beschreibung: Diese Mod fügt die Spurführung auf Basis von Courseplay Kursen hinzu.
-GitHub-Link: https://github.com/Hans-Reiner/FS25_CourseplayGps
+Um diese Mod zu verwenden, muss Courseplay (https://github.com/Courseplay/Courseplay_FS25) installiert sein.
 
-Changelog 1.0.0.0:
-- Initiale Implementierung.
+Anschließend können Sie Feldkurse nutzen, um die GPS-Spurführung beim Fahren von Traktoren oder Erntemaschinen zu aktivieren.
+Die Motivation war, einen nahtlosen Wechsel zwischen CP-Helfern und manuellem Fahren zu ermöglichen und dabei die GPS-Spurführung beizubehalten.
+Die automatische Spurführung von Giants verwendet eigene Kurse, die zu ggf. Abweichungen zu den Courseplay Kursen hat.
+Weiterhin bietet der CP-Kursgenerator deutlich mehr Optionen zur Steuerung der Kursdetails, einschließlich der Möglichkeit, Kurse zu laden und zu speichern.
+Ein Beispiel ist das Mähen von Gras (z.B. 10m Arbeitsbreite) und das anschließend Aufladen, indem Sie einfach denselben Kurs laden.
 
-Changelog 1.0.1.0
-- Ausblenden des Kurses, wenn die Spurführung aktiviert wird.
+So verwenden Sie diese Mod:
+- Weisen Sie in den Einstellungen einen Tastenkombination zur Aktivierung zu.
+- Generieren oder laden Sie einen CP-Kurs.
+- Ab diesem Zeitpunkt können Sie die automatische Lenkung aktivieren.
+- Das System wählt die nächstgelegenen Wegpunkte und beginnt automatisch zu lenken.
 
-Changelog 1.0.2.0:
-- Multiplayer Funktion hinzugefügt
-- Parameter zum Einstellen der Spurführung hinzugefügt
-- Lösen kleinere Probleme und Verbesserungen
+Funktionen:
+- Folgt automatisch dem CP-Kurs.
+- Das System ist nur für die Verwendung auf Feldern vorgesehen.
 
-Changelog 1.0.3.0:
-- Optionen zum Deaktivieren der Spurführung und des Tempomats erweitert
-- Fix wenn ein Lenkrad beim Aktivieren nicht zentriert ist.
-
-Changelog 1.0.4.0:
-- Auswerten ob ein Punkt den Pfadfinder verwendet, um die Deaktivierung zu triggern.
-
-Changelog 1.0.5.0:
-- Fehler behoben, der in manchen Situationen einen Skriptfehler auslöst.
+Parameter zur Steuerung der folgenden Funktionen:
+- GPS-Tracking deaktivieren (am Ende der Reihe, am Ende des Kurs, auf dem Verbindungsweg oder nie).
+- Tempomat deaktivieren (am Ende der Reihe, am Ende des Kurs, auf dem Verbindungsweg oder nie).
+- Entfernt die automatische Spurführung von Giants, sobald eine CP-Strecke geladen ist (damit kann die gleiche Tastenbelegung verwendet werden).
+- Parameter der festlegt, in welchem ​​Modus die Streckenführung angezeigt werden soll.
+- Parameter der festlegt, wann die Streckenführung nach Aktivierung der automatischen Lenkung ausgeblendet werden soll.
 ]]></de>
+<fr><![CDATA[Extension GPS Courseplay
+Description : Ce mod ajoute la direction automatique aux véhicules grâce aux parcours générés par Courseplay.
+
+Pour utiliser ce mod, Courseplay (https://github.com/Courseplay/Courseplay_FS25) doit être installé.
+Vous pouvez ensuite utiliser les parcours de terrain pour activer le suivi GPS lors de la conduite de tracteurs ou de moissonneuses-batteuses.
+L'objectif était de permettre une transition fluide entre l'assistance Courseplay et la conduite manuelle, tout en conservant le suivi GPS.
+La direction automatique de Giants utilise ses propres parcours, ce qui peut entraîner un décalage ou des trajectoires différentes de celles utilisées par Courseplay.
+De manière générale, le générateur de parcours de Courseplay offre beaucoup plus d'options pour contrôler les détails des parcours, notamment la possibilité de les charger et de les enregistrer.
+Par exemple, pour tondre l'herbe (largeur de travail de 10 m) et la ramasser ensuite, il suffit de charger le même parcours.
+
+Comment utiliser ce mod :
+- Attribuez une touche d'activation dans les paramètres.
+- Générez ou chargez un parcours CP.
+- À partir de ce moment, vous pouvez activer le pilotage automatique lorsque vous entrez dans un champ.
+- Le système sélectionne les points de passage les plus proches et commence à piloter automatiquement.
+
+Fonctionnalités :
+- Suivi automatique du parcours CP.
+- Le système est conçu pour fonctionner uniquement sur les champs.
+
+Paramètres pour contrôler les fonctionnalités suivantes :
+- Suivi GPS désactivé (fin de rangée, fin de parcours, sur la voie de liaison ou jamais).
+- Désactivation du régulateur de vitesse (fin de rangée, fin de parcours, sur la voie de liaison ou jamais).
+- Suppression des parcours de pilotage automatique Giants lorsqu'un parcours CP est chargé.
+- Définition du mode d'affichage du parcours.
+- Délai de masquage du parcours après l'activation du pilotage automatique.
+]]></fr>
 	</description>
 	
 	<iconFilename>icon_CourseplayGps.dds</iconFilename>

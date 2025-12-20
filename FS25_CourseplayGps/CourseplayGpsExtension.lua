@@ -371,7 +371,7 @@ function CourseplayGpsExtension:cpEonWaypointChange(ix, course)
 
 	-- End of course reached
 	if course:isLastWaypointIx(ix) then
-		if disableCruiseCtrl >= 1 and disableCruiseCtrl <= 3 then
+		if disableSteering >= 1 and disableSteering <= 3 then
 			CourseplayGpsExtension.PrintModLog(2, "onWaypointChange: End of the course reached. Stop GPS")
 			self:SteeringOnOff(2)	-- GPS Off
 		end
