@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------------------------
--- Courseplay Gps Extension (V1.0.5)
+-- Courseplay Gps Extension (V1.0.6)
 ----------------------------------------------------------------------------------------------------
 -- Purpose:  Courseplay Gps Extension
 -- Authors:  Schluppe
@@ -14,6 +14,7 @@
 --                     - Options to control cruise control and deactivation of automatic steering
 --  V1.0.4  28.10.2025 - Evaluating if waypoint should be used by Pathfinder to trigger deactivation
 --  V1.0.5  06.12.2025 - Fix an issue on calling vehicle:hasCpCourse() 
+--  V1.0.6  07.01.2026 - Adapt warning message to player notification
 ----------------------------------------------------------------------------------------------------
 CourseplayGpsExtension = {}
 CourseplayGpsExtension.LogLevel = 1	-- (0=Error, 1=Warning, 2=Info, 3=Debug)
@@ -283,8 +284,8 @@ function CourseplayGpsExtension:getAIAutomaticSteeringState(superFunc)
 		if result ~= AIAutomaticSteering.STATE.DISABLED and self:getCpSettings().cpGpsDisableGiantsAiSteering:getValue() then
 			self:setAIAutomaticSteeringCourse(nil)	-- Empty the Giants AI Course.
 			local warning = g_i18n:getText("DisableGiantsAiSteering_warning")
-			if warning ~= nil then
-				g_currentMission:showBlinkingWarning(warning, 5000)
+			if warning ~= nil and self.isClient then
+				g_currentMission:addIngameNotification(FSBaseMission.INGAME_NOTIFICATION_INFO, warning)
 			end
 		end
 
