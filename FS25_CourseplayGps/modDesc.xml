@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<modDesc descVersion="105">
+<modDesc descVersion="106">
 	<author>Schluppe</author>
 	<version>1.0.0.0</version>
 	
@@ -12,7 +12,7 @@
 	<description>
 	<en><![CDATA[Courseplay GPS Extension
 Description: This mod adds automatic steering to Vehicles based on Courseplay curses.
-In order to use this mod there is the need to have Courseplay (https://github.com/Courseplay/Courseplay_FS25) installed.
+In order to use this mod there is the need to have Courseplay installed.
 
 Afterwards you can use Field courses to enable GPS tracking when driving tractors or harvesters. 
 The motivation was to have the chance to smoothly swap between the CP helper and manual driving, but still using GPS tracking. 
@@ -40,7 +40,7 @@ Parameters to control the following features:
 ]]></en>
 	<de><![CDATA[Courseplay GPS Erweiterung
 Beschreibung: Diese Mod fügt die Spurführung auf Basis von Courseplay Kursen hinzu.
-Um diese Mod zu verwenden, muss Courseplay (https://github.com/Courseplay/Courseplay_FS25) installiert sein.
+Um diese Mod zu verwenden, muss Courseplay installiert sein.
 
 Anschließend können Sie Feldkurse nutzen, um die GPS-Spurführung beim Fahren von Traktoren oder Erntemaschinen zu aktivieren.
 Die Motivation war, einen nahtlosen Wechsel zwischen CP-Helfern und manuellem Fahren zu ermöglichen und dabei die GPS-Spurführung beizubehalten.
@@ -68,7 +68,7 @@ Parameter zur Steuerung der folgenden Funktionen:
 <fr><![CDATA[Extension GPS Courseplay
 Description : Ce mod ajoute la direction automatique aux véhicules grâce aux parcours générés par Courseplay.
 
-Pour utiliser ce mod, Courseplay (https://github.com/Courseplay/Courseplay_FS25) doit être installé.
+Pour utiliser ce mod, Courseplay doit être installé.
 Vous pouvez ensuite utiliser les parcours de terrain pour activer le suivi GPS lors de la conduite de tracteurs ou de moissonneuses-batteuses.
 L'objectif était de permettre une transition fluide entre l'assistance Courseplay et la conduite manuelle, tout en conservant le suivi GPS.
 La direction automatique de Giants utilise ses propres parcours, ce qui peut entraîner un décalage ou des trajectoires différentes de celles utilisées par Courseplay.
@@ -203,6 +203,12 @@ Paramètres pour contrôler les fonctionnalités suivantes :
 			<en>Defines the moment of disabling the GPS tracking.</en>
 		</text>
 	</l10n>
+
+	<inputBinding>
+		<actionBinding action="FS25_CourseplayGpsExtension_GPS_ONOFF">
+			<binding device="KB_MOUSE_DEFAULT" input="KEY_lctrl KEY_lshift KEY_g" axisComponent="+" neutralInput="0" index="1"/>
+		</actionBinding>
+	</inputBinding>
 
 	<actions>
 		<action name="FS25_CourseplayGpsExtension_GPS_ONOFF" category="VEHICLE"/>
