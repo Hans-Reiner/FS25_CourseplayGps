@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="106">
 	<author>Schluppe</author>
-	<version>1.0.0.0</version>
+	<version>1.0.1.0</version>
 	
 	<title>
 		<en>Courseplay GPS Extension</en>
@@ -11,7 +11,7 @@
 	
 	<description>
 	<en><![CDATA[Courseplay GPS Extension
-Description: This mod adds automatic steering to Vehicles based on Courseplay curses.
+Description: This mod adds automatic steering to Vehicles based on Courseplay courses.
 In order to use this mod there is the need to have Courseplay installed.
 
 Afterwards you can use Field courses to enable GPS tracking when driving tractors or harvesters. 
@@ -37,6 +37,12 @@ Parameters to control the following features:
 - Remove Giants automatic steering courses when a CP course is loaded
 - Define the mode to show the path of the course
 - Time to hide the path after activating the automatic steering
+
+Changelog 1.0.0.0:
+- Initial creation
+
+Changelog 1.0.1.0:
+- Fixed an issue when running FS25 in French
 ]]></en>
 	<de><![CDATA[Courseplay GPS Erweiterung
 Beschreibung: Diese Mod fügt die Spurführung auf Basis von Courseplay Kursen hinzu.
@@ -64,6 +70,12 @@ Parameter zur Steuerung der folgenden Funktionen:
 - Entfernt die automatische Spurführung von Giants, sobald eine CP-Strecke geladen ist (damit kann die gleiche Tastenbelegung verwendet werden).
 - Parameter der festlegt, in welchem ​​Modus die Streckenführung angezeigt werden soll.
 - Parameter der festlegt, wann die Streckenführung nach Aktivierung der automatischen Lenkung ausgeblendet werden soll.
+
+Changelog 1.0.0.0:
+- Initiale Erstellung.
+
+Changelog 1.0.1.0:
+- Ein Problem beim Ausführen von FS25 auf Französisch wurde behoben.
 ]]></de>
 <fr><![CDATA[Extension GPS Courseplay
 Description : Ce mod ajoute la direction automatique aux véhicules grâce aux parcours générés par Courseplay.
@@ -91,6 +103,13 @@ Paramètres pour contrôler les fonctionnalités suivantes :
 - Suppression des parcours de pilotage automatique Giants lorsqu'un parcours CP est chargé.
 - Définition du mode d'affichage du parcours.
 - Délai de masquage du parcours après l'activation du pilotage automatique.
+
+
+Changelog 1.0.0.0:
+- Configuration initiale.
+
+Changelog 1.0.1.0:
+- Correction d'un problème d'exécution de FS25 en français.
 ]]></fr>
 	</description>
 	

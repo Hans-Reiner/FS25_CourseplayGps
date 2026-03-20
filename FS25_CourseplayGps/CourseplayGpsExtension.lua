@@ -15,13 +15,14 @@
 --  V1.0.4  28.10.2025 - Evaluating if waypoint should be used by Pathfinder to trigger deactivation
 --  V1.0.5  06.12.2025 - Fix an issue on calling vehicle:hasCpCourse() 
 --  V1.0.6  07.01.2026 - Adapt warning message to player notification
+--  V1.0.7  20.03.2026 - Fix an issue when running FS25 in French
 ----------------------------------------------------------------------------------------------------
 CourseplayGpsExtension = {}
 CourseplayGpsExtension.LogLevel = 1	-- (0=Error, 1=Warning, 2=Info, 3=Debug)
 
 -- Get Mod by Title as g_currentModDirectory nor g_currentModName isn't valid in specializations
 for _, mod in pairs(g_modManager.mods) do
-	if mod.title:upper() == "COURSEPLAY GPS EXTENSION" or mod.title:upper() == "COURSEPLAY GPS ERWEITERUNG" then
+	if mod.title:upper() == "COURSEPLAY GPS EXTENSION" or mod.title:upper() == "COURSEPLAY GPS ERWEITERUNG" or mod.title:upper() == "EXTENSION GPS COURSEPLAY" then
 		if g_modIsLoaded[tostring(mod.modName)] then
 			CourseplayGpsExtension.modDirectory = mod.modDir
 			CourseplayGpsExtension.modName = mod.modName
