@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<modDesc descVersion="107">
+<modDesc descVersion="108">
 	<author>Schluppe</author>
-	<version>1.0.1.0</version>
+	<version>1.0.2.0</version>
 	
 	<title>
 		<en>Courseplay GPS Extension</en>
@@ -43,6 +43,9 @@ Changelog 1.0.0.0:
 
 Changelog 1.0.1.0:
 - Fixed an issue when running FS25 in French
+
+Changelog 1.0.2.0:
+- Allowing to drive in the opposite course direction
 ]]></en>
 	<de><![CDATA[Courseplay GPS Erweiterung
 Beschreibung: Diese Mod fügt die Spurführung auf Basis von Courseplay Kursen hinzu.
@@ -76,6 +79,9 @@ Changelog 1.0.0.0:
 
 Changelog 1.0.1.0:
 - Ein Problem beim Ausführen von FS25 auf Französisch wurde behoben.
+
+Changelog 1.0.2.0:
+- Erlauben den Kurs in die entgegengesetzte Richtung zu befahren
 ]]></de>
 <fr><![CDATA[Extension GPS Courseplay
 Description : Ce mod ajoute la direction automatique aux véhicules grâce aux parcours générés par Courseplay.
@@ -110,6 +116,9 @@ Changelog 1.0.0.0:
 
 Changelog 1.0.1.0:
 - Correction d'un problème d'exécution de FS25 en français.
+
+Changelog 1.0.2.0:
+- Autoriser à rouler dans la direction opposée
 ]]></fr>
 	</description>
 	
@@ -220,6 +229,14 @@ Changelog 1.0.1.0:
 		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsDisableSteering_tooltip">
 			<de>Mit diesem Wert wird definiert, wann die Spurführung abgeschaltet wird.</de>
 			<en>Defines the moment of disabling the GPS tracking.</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsAllowReverseDirection_title">
+			<de>Ermöglicht das Fahren in die entgegengesetzte Richtung</de>
+			<en>Allows driving in the opposite direction</en>
+		</text>
+		<text name="FS25_CourseplayGps_Vehicle_setting_cpGpsAllowReverseDirection_tooltip">
+			<de>Ermöglicht das Befahren der Kurses in umgekehrter Richtung. In diesem Fall wird auch dier aktive Kurs ebenfalls umgekehrt. Somit wird der Start zum Ende und umgekehrt.</de>
+			<en>Allows driving the course in the opposite direction. In such case, the active course is also reversed. Thus, the start becomes the end and vice versa.</en>
 		</text>
 	</l10n>
 

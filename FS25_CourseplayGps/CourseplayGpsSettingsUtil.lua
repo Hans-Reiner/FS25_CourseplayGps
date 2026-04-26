@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------------------------
--- Courseplay Gps Extension (V1.0.1)
+-- Courseplay Gps Extension (V1.0.2)
 ----------------------------------------------------------------------------------------------------
 -- Purpose:  Courseplay Settings Handling
 -- Authors:  Schluppe
@@ -9,6 +9,7 @@
 -- History:
 --  V1.0.0  18.10.2025 - Initial implementation, Adding Settings to CP Vehicle settings screen
 --  V1.0.1  24.10.2025 - Options to control cruise control and deactivation of automatic steering
+--  V1.0.2  28.03.2026 - Adding option to allow reversing the course
 ----------------------------------------------------------------------------------------------------
 CourseplayGpsSettingsUtil = {}
 local CourseplayGpsSettingsUtil_mt = Class(CourseplayGpsSettingsUtil)
@@ -72,6 +73,9 @@ function CourseplayGpsSettingsUtil:CreateSettingsParameters(uniqueID)
 		table.insert(parameter.texts, g_i18n:getText("WpTrigger_EndOfCourse"))		
 		table.insert(parameters, parameter)
 	end
+
+	uniqueID = uniqueID + 1
+	table.insert(parameters, self:CreateSettingsParameter(uniqueID, "AIParameterBooleanSetting" , "cpGpsAllowReverseDirection", false))
 
 	CourseplayGpsExtension.PrintModLog(3, "%s parameters for settings created.", #parameters)
 	return parameters

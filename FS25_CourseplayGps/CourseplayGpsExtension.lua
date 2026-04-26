@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------------------------
--- Courseplay Gps Extension (V1.0.6)
+-- Courseplay Gps Extension (V1.0.8)
 ----------------------------------------------------------------------------------------------------
 -- Purpose:  Courseplay Gps Extension
 -- Authors:  Schluppe
@@ -16,6 +16,7 @@
 --  V1.0.5  06.12.2025 - Fix an issue on calling vehicle:hasCpCourse() 
 --  V1.0.6  07.01.2026 - Adapt warning message to player notification
 --  V1.0.7  20.03.2026 - Fix an issue when running FS25 in French
+--  V1.0.8  28.03.2026 - Implementing reversing the course to allow driving in the opposite direction
 ----------------------------------------------------------------------------------------------------
 CourseplayGpsExtension = {}
 CourseplayGpsExtension.LogLevel = 1	-- (0=Error, 1=Warning, 2=Info, 3=Debug)
@@ -71,7 +72,6 @@ function CourseplayGpsExtension.registerOverwrittenFunctions(vehicleType)
     SpecializationUtil.registerOverwrittenFunction(vehicleType, "getAIAutomaticSteeringState"	, CourseplayGpsExtension.getAIAutomaticSteeringState)
     SpecializationUtil.registerOverwrittenFunction(vehicleType, "getAIModeSelection"			, CourseplayGpsExtension.getAIModeSelection)
 end
-
 
 -- Event onPreLoad
 function CourseplayGpsExtension:onPreLoad(savegame)
@@ -416,12 +416,39 @@ function CourseplayGpsExtension:SteeringOnOff(state)
 		if (state == nil and (spec.GpsActive == 0 or spec.GpsActive == nil)) or
 		   (state ~= nil and state == 1)
 		then
-			local _, _, ClosestIdxInDirection, _ = spec.course:getNearestWaypoints(self:getAIDirectionNode())
+			local aiNode = self:getAIDirectionNode()
+			local ClosestIdx, ClosestDist, ClosestIdxInDirection, ClosestDistInDirection = spec.course:getNearestWaypoints(aiNode)
+			local nextIdx = ClosestIdxInDirection
+
+			if self:getCpSettings().cpGpsAllowReverseDirection:getValue() then
+				CourseplayGpsExtension.PrintModLog(3, "Allowing the course to be reversed.")
+
+				local aiNodeX, _, aiNodeZ = localDirectionToWorld(aiNode, 0, 0, 1)
+				local aiNodeAngle = math.deg(math.atan2(aiNodeX, aiNodeZ))
+				local ClosestWp = spec.course:getWaypoint(ClosestIdx)
+				local ClosestWpDir = spec.course:getWaypoint(ClosestIdxInDirection)
+
+				CourseplayGpsExtension.PrintModLog(3, "Identifying position Closted   Idx=%s Distance=%s Angle=%s" , ClosestIdx, ClosestDist, ClosestWp.angle)
+				CourseplayGpsExtension.PrintModLog(3, "Identifying position Direction Idx=%s Distance=%s Angle=%s" , ClosestIdxInDirection, ClosestDistInDirection, ClosestWpDir.angle)
+				
+				if ClosestIdx ~= ClosestIdxInDirection then
+					CourseplayGpsExtension.PrintModLog(3, "The nearest WP is not in driving direction. ")
+					local deltaNearAngle = math.abs( aiNodeAngle - ClosestWp.angle )
+					CourseplayGpsExtension.PrintModLog(3, "Angle difference of clostestNode=%s", deltaNearAngle)
+					if math.abs(deltaNearAngle - 180) < 45 then
+						CourseplayGpsExtension.PrintModLog(3, "Reversing course.")
+						spec.course:reverse()
+						local _, _, RevClosestIdxInDirection, _ = spec.course:getNearestWaypoints(aiNode)
+						nextIdx = RevClosestIdxInDirection
+					end
+				end
+			end
+
 			spec.ppc:setCourse(spec.course)
-			spec.ppc:initialize(ClosestIdxInDirection)
+			spec.ppc:initialize(nextIdx)
 			spec.ppc:setShortLookaheadDistance()
-			spec.SetPpcNormalDistanceIndex = ClosestIdxInDirection + 2
-			CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Starting at Index %s" , ClosestIdxInDirection)
+			spec.SetPpcNormalDistanceIndex = nextIdx + 2
+			CourseplayGpsExtension.PrintModLog(3, "SteeringOnOff Starting at Index %s" , nextIdx)
 			spec.LastNodeInRow = nil
 
 			if displayMode >= 0 and displayMode < 4 then
