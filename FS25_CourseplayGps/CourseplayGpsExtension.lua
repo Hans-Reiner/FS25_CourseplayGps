@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------------------------
--- Courseplay Gps Extension (V1.0.8)
+-- Courseplay Gps Extension (V1.0.9)
 ----------------------------------------------------------------------------------------------------
 -- Purpose:  Courseplay Gps Extension
 -- Authors:  Schluppe
@@ -17,6 +17,8 @@
 --  V1.0.6  07.01.2026 - Adapt warning message to player notification
 --  V1.0.7  20.03.2026 - Fix an issue when running FS25 in French
 --  V1.0.8  28.03.2026 - Implementing reversing the course to allow driving in the opposite direction
+--  V1.0.9  16.08.2026 - Fix manual steering staying active and inverted on input devices without
+--                       a device mapping in FS25 (reporting InputDevice.CATEGORY.UNKNOWN)
 ----------------------------------------------------------------------------------------------------
 CourseplayGpsExtension = {}
 CourseplayGpsExtension.LogLevel = 1	-- (0=Error, 1=Warning, 2=Info, 3=Debug)
@@ -87,6 +89,7 @@ function CourseplayGpsExtension:onLoad(savegame)
 	local spec = self.spec_cpGpsExtension
 	spec.steeringLastEnableTime = -math.huge
 	spec.lastSteeringInputValue = 0
+	spec.isAutomaticSteeringInput = false
 
 	--- Attach to Courseplay
 	spec.SettingUtil:AddTextsToCourseplay()
@@ -182,7 +185,12 @@ function CourseplayGpsExtension:onUpdate(dt)
 			spec.steeringValue = math.max(spec.steeringValue - dt*self:getAISteeringSpeed(), targetRotTime)
 		end
 
+		-- Flag our own steering command so it is not mistaken for a player input.
+		-- Device categories must not be used for this: any input device FS25 has no
+		-- deviceMapping for (e.g. Moza R9/R12 wheel bases) also reports CATEGORY.UNKNOWN.
+		spec.isAutomaticSteeringInput = true
 		self:setSteeringInput(spec.steeringValue, true, InputDevice.CATEGORY.UNKNOWN)
+		spec.isAutomaticSteeringInput = false
 	end
 
 	if type(self.getIsOnField) == "function" and type(self.hasCpCourse) == "function" and type(self.getCanStartCpFieldWork) == "function" then
@@ -248,12 +256,12 @@ function CourseplayGpsExtension:setSteeringInput(superFunc, inputValue, isAnalog
 	local spec = self.spec_cpGpsExtension
 	if spec.GpsActive and spec.GpsActive == 1 then
 		-- CourseplayGpsExtension.PrintModLog(4, "setSteeringInput deviceCategory=%s inputValue=%s", deviceCategory, inputValue) 
-		if deviceCategory == InputDevice.CATEGORY.KEYBOARD_MOUSE then
+		if spec.isAutomaticSteeringInput then
+			-- Automatic steering (our own command, see onUpdate)
+			inputValue = -inputValue
+		elseif deviceCategory == InputDevice.CATEGORY.KEYBOARD_MOUSE then
 			CourseplayGpsExtension.PrintModLog(3, "setSteeringInput Deactivate GPS by Keyboard.") 
 			self:SteeringOnOff(0)	-- GPS Off
-		elseif deviceCategory == InputDevice.CATEGORY.UNKNOWN then
-			-- Automatic steering
-			inputValue = -inputValue
 		elseif g_time - spec.steeringLastEnableTime > 2000 then
 			local steerDiff = inputValue - spec.lastSteeringInputValue
 			-- CourseplayGpsExtension.PrintModLog(4, "setSteeringInput deviceCategory=%s inputValue=%s steeringDifference=%s", deviceCategory, inputValue, steerDiff) 

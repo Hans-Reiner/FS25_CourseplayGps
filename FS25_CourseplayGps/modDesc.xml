@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="108">
 	<author>Schluppe</author>
-	<version>1.0.2.0</version>
+	<version>1.0.3.0</version>
 	
 	<title>
 		<en>Courseplay GPS Extension</en>
@@ -46,6 +46,10 @@ Changelog 1.0.1.0:
 
 Changelog 1.0.2.0:
 - Allowing to drive in the opposite course direction
+
+Changelog 1.0.3.0:
+- Fixed the steering wheel still steering, and steering inverted, while GPS tracking is active on
+  wheel bases that FS25 has no device mapping for (for example most Moza wheel bases)
 ]]></en>
 	<de><![CDATA[Courseplay GPS Erweiterung
 Beschreibung: Diese Mod fügt die Spurführung auf Basis von Courseplay Kursen hinzu.
@@ -82,6 +86,10 @@ Changelog 1.0.1.0:
 
 Changelog 1.0.2.0:
 - Erlauben den Kurs in die entgegengesetzte Richtung zu befahren
+
+Changelog 1.0.3.0:
+- Behoben: Bei aktiver Spurführung lenkte das Lenkrad weiterhin mit, und zwar invertiert, wenn für
+  die Lenkradbasis keine Gerätezuordnung in FS25 hinterlegt ist (z.B. die meisten Moza Wheel Bases)
 ]]></de>
 <fr><![CDATA[Extension GPS Courseplay
 Description : Ce mod ajoute la direction automatique aux véhicules grâce aux parcours générés par Courseplay.
@@ -119,6 +127,10 @@ Changelog 1.0.1.0:
 
 Changelog 1.0.2.0:
 - Autoriser à rouler dans la direction opposée
+
+Changelog 1.0.3.0:
+- Correction du volant qui continuait à diriger, et de façon inversée, pendant le suivi GPS sur les
+  bases de volant sans mappage de périphérique dans FS25 (par exemple la plupart des bases Moza)
 ]]></fr>
 	</description>
 	
